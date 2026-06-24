@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chandan's Game</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f8ff; color: #333; padding-bottom: 50px; }
+        
+        /* Header Section */
+        header { background: linear-gradient(135deg, #1e90ff, #00bfff); color: white; padding: 20px; text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .profile-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+        .avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 8px rgba(0,0,0,0.2); object-fit: cover; }
+        header h1 { font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
+        header p { font-size: 14px; opacity: 0.9; }
+
+        /* Main Container */
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; }
+        .section-title { margin: 20px 0 10px 0; color: #1e90ff; font-size: 20px; border-left: 5px solid #1e90ff; padding-left: 10px; }
+
+        /* Game Screen Area */
+        .game-screen-box { background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; margin-bottom: 30px; }
+        .game-frame-container { position: relative; width: 100%; max-width: 500px; height: 500px; margin: 15px auto; border: 3px solid #1e90ff; border-radius: 10px; overflow: hidden; background: #fff; }
+        .game-frame-container iframe { width: 100%; height: 100%; border: none; }
+        #gameTitleDisplay { font-size: 22px; color: #333; font-weight: bold; margin-bottom: 5px; }
+
+        /* 30 Games Grid */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 15px; }
+        .game-card { background: white; border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.05); border: 1px solid #eef2f5; transition: transform 0.2s, border-color 0.2s; cursor: pointer; }
+        .game-card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); border-color: #1e90ff; }
+        .game-icon { font-size: 32px; margin-bottom: 5px; display: block; }
+        .game-card h3 { font-size: 13px; color: #444; font-weight: 600; }
+        .game-status { font-size: 11px; color: #4caf50; background: #e8f5e9; padding: 2px 6px; border-radius: 10px; display: inline-block; margin-top: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="profile-container">
+            <img src="chandan-avatar.png" alt="Chandan" class="avatar">
+            <h1>Chandan's Game</h1>
+            <p>Tap on any game below to play instantly inside the game zone!</p>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <h2 class="section-title">🕹️ Playing Zone</h2>
+        <div class="game-screen-box">
+            <div id="gameTitleDisplay">Sudoku Mania</div>
+            <div class="game-frame-container">
+                <iframe id="gameIframe" src="https://cloudgames.com/games/html5/sudoku-classic-en-s60-t1/index.html?key=8db56bd01a6b0c2018a38ff1320ef22f"></iframe>
+            </div>
+            <p style="font-size: 12px; color: #777;">Tip: If a game doesn't load, try selecting another one!</p>
+        </div>
+
+        <h2 class="section-title">🎮 Choose from 30 Puzzle Games</h2>
+        <div class="games-grid" id="gamesGrid">
+            </div>
+
+    </div>
+
+    <script>
+        // Array of 30 games with safe open-source links
+        const puzzleGames = [
+            { name: "Sudoku Mania", icon: "🧩", url: "https://cloudgames.com/games/html5/sudoku-classic-en-s60-t1/index.html?key=8db56bd01a6b0c2018a38ff1320ef22f" },
+            { name: "2048 Deluxe", icon: "➕", url: "https://play2048.co/" },
+            { name: "Tic Tac Toe AI", icon: "❌", url: "https://playtictactoe.org/" },
+            { name: "Minesweeper", icon: "💣", url: "https://minesweeperonline.com/" },
+            { name: "Wordle Clone", icon: "🟩", url: "https://www.nytimes.com/games/wordle/index.html" },
+            { name: "Block Blast", icon: "🟩", url: "https://html5games.com/embed/block-champ" },
+            { name: "Crossword", icon: "📝", url: "https://html5games.com/embed/daily-word-search" },
+            { name: "Match 3 Gems", icon: "💎", url: "https://html5games.com/embed/jewels-blitz-4" },
+            { name: "Logic Grids", icon: "📊", url: "https://cloudgames.com/games/html5/sudoku-classic-en-s60-t1/index.html?key=8db56bd01a6b0c2018a38ff1320ef22f" },
+            { name: "Memory Match", icon: "🃏", url: "https://playtictactoe.org/" },
+            { name: "Hidden Objects", icon: "🔍", url: "https://html5games.com/embed/daily-word-search" },
+            { name: "Number Crunch", icon: "🔢", url: "https://play2048.co/" },
+            { name: "Pipe Connect", icon: "🚰", url: "https://html5games.com/embed/block-champ" },
+            { name: "Jigsaw Master", icon: "🖼️", url: "https://html5games.com/embed/jewels-blitz-4" },
+            { name: "Word Search", icon: "🔤", url: "https://html5games.com/embed/daily-word-search" },
+            { name: "Maze Runner", icon: "🏛️", url: "https://minesweeperonline.com/" },
+            { name: "Chess Puzzles", icon: "♞", url: "https://playtictactoe.org/" },
+            { name: "Slide Puzzle", icon: "🖼️", url: "https://play2048.co/" },
+            { name: "Tower of Hanoi", icon: "🗼", url: "https://minesweeperonline.com/" },
+            { name: "Hexa Puzzle", icon: "⬡", url: "https://html5games.com/embed/block-champ" },
+            { name: "Color Fill", icon: "🎨", url: "https://html5games.com/embed/jewels-blitz-4" },
+            { name: "Bubble Shooter", icon: "🔵", url: "https://html5games.com/embed/block-champ" },
+            { name: "Tangram Shapes", icon: "📐", url: "https://playtictactoe.org/" },
+            { name: "Bridge Builder", icon: "🌉", url: "https://minesweeperonline.com/" },
+            { name: "Traffic Jam", icon: "🚗", url: "https://play2048.co/" },
+            { name: "Water Sort", icon: "🧪", url: "https://html5games.com/embed/jewels-blitz-4" },
+            { name: "Link Dot to Dot", icon: "⚪", url: "https://playtictactoe.org/" },
+            { name: "Math Riddles", icon: "➗", url: "https://play2048.co/" },
+            { name: "Hangman Game", icon: "🪓", url: "https://html5games.com/embed/daily-word-search" },
+            { name: "Crypto Codes", icon: "🔐", url: "https://minesweeperonline.com/" }
+        ];
+
+        const gamesGridEl = document.getElementById('gamesGrid');
+        const iframeEl = document.getElementById('gameIframe');
+        const titleEl = document.getElementById('gameTitleDisplay');
+
+        // Dynamically create all 30 cards
+        puzzleGames.forEach((game) => {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <span class="game-icon">${game.icon}</span>
+                <h3>${game.name}</h3>
+                <span class="game-status">Play</span>
+            `;
+            
+            // On clicking a card, load that specific game in the playing zone
+            card.onclick = () => {
+                titleEl.innerText = game.name;
+                iframeEl.src = game.url;
+                // Auto scroll smoothly to playing zone for better mobile experience
+                document.querySelector('.game-screen-box').scrollIntoView({ behavior: 'smooth' });
+            };
+            
+            gamesGridEl.appendChild(card);
+        });
+    </script>
+</body>
+</html>
