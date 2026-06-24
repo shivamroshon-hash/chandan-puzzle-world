@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chandan's Game</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f0f8ff; color: #333; padding-bottom: 50px; text-align: center; }
+        
+        header { background: linear-gradient(135deg, #1e90ff, #00bfff); color: white; padding: 20px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .profile-container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 4px solid white; object-fit: cover; }
+        header h1 { font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+        .section-title { margin: 20px 0 10px 0; color: #1e90ff; font-size: 18px; border-left: 5px solid #1e90ff; padding-left: 10px; text-align: left; }
+
+        /* PLAYING ZONE */
+        .game-screen-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border: 2px solid #1e90ff; }
+        #gameTitleDisplay { font-size: 20px; color: #1e90ff; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; }
+        .game-content-area { min-height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fafafa; border-radius: 10px; padding: 10px; }
+
+        /* GAME 1: SUDOKU */
+        .sudoku-grid { display: grid; grid-template-columns: repeat(9, 1fr); max-width: 280px; margin: 0 auto; border: 2px solid #333; }
+        .sudoku-grid input { width: 100%; height: 30px; text-align: center; font-size: 14px; border: 1px solid #ccc; outline: none; }
+
+        /* GAME 2: TIC TAC TOE */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 220px; margin: 0 auto; }
+        .ttt-cell { background: #e6f2ff; height: 70px; font-size: 32px; font-weight: bold; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; color: #1e90ff; }
+
+        /* GAME 3: MEMORY MATCH */
+        .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 240px; margin: 0 auto; }
+        .memory-card { background: #1e90ff; height: 55px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; color: transparent; user-select: none; }
+        .memory-card.flipped { background: #fff; color: #333; border: 2px solid #1e90ff; }
+
+        /* GENERAL PUZZLE ENGINE (FOR OTHER 27 GAMES) */
+        .puzzle-engine-box { width: 100%; padding: 10px; }
+        .puzzle-question { font-size: 16px; font-weight: 500; margin-bottom: 15px; color: #444; }
+        .puzzle-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .opt-btn { background: #f0f4f8; border: 1px solid #1e90ff; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: #333; transition: 0.2s; }
+        .opt-btn:hover { background: #1e90ff; color: white; }
+
+        /* 30 GAMES GRID */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+        .game-card { background: white; border-radius: 10px; padding: 10px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 1px solid #eef2f5; cursor: pointer; transition: 0.2s; }
+        .game-card:hover { transform: scale(1.03); border-color: #1e90ff; }
+        .game-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+        .game-card h3 { font-size: 11px; color: #444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .btn { background: #ff4757; color: white; border: none; padding: 8px 16px; font-size: 13px; border-radius: 20px; cursor: pointer; margin-top: 15px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn:hover { background: #ff2e44; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="profile-container">
+            <img src="chandan-avatar.png" alt="Chandan" class="avatar">
+            <h1>Chandan's Game</h1>
+            <p>Tap any of the 30 games below to play instantly!</p>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <h2 class="section-title">🕹️ Playing Zone</h2>
+        <div class="game-screen-box">
+            <div id="gameTitleDisplay">Sudoku Challenge</div>
+            <div class="game-content-area" id="gameContentArea">
+                </div>
+            <div id="resetBtnContainer"></div>
+        </div>
+
+        <h2 class="section-title">🎮 Select Game (30 Games Collection)</h2>
+        <div class="games-grid" id="gamesGrid"></div>
+
+    </div>
+
+    <script>
+        let currentGameObj = null;
+
+        // 30 Games Data List
+        const gamesList = [
+            { id: "sudoku", name: "Sudoku Challenge", icon: "🧩" },
+            { id: "tictactoe", name: "Tic Tac Toe AI", icon: "❌" },
+            { id: "memory", name: "Memory Match", icon: "🃏" },
+            { id: "p4", name: "2048 Number Riddle", icon: "🔢", q: "What number comes next in sequence: 2, 4, 8, 16, 32, ...?", a: "64", opts: ["48", "64", "128", "50"] },
+            { id: "p5", name: "Math Logic Crunch", icon: "➕", q: "If 1+4=5, 2+5=12, 3+6=21; then what is 8+11=?", a: "96", opts: ["40", "96", "19", "88"] },
+            { id: "p6", name: "Minesweeper Guess", icon: "💣", q: "A grid has 3 mines around 1 square. How many safe squares touch it directly?", a: "5", opts: ["3", "8", "5", "6"] },
+            { id: "p7", name: "Wordle Logic Twist", icon: "🟩", q: "Which 5-letter word has 2 vowels and ends with 'Y'?", a: "HAPPY", opts: ["SMART", "HAPPY", "PLANT", "LIGHT"] },
+            { id: "p8", name: "Block Blast Puzzle", icon: "🟩", q: "A 10x10 grid is full except for 1 row. How many blocks needed to clear it?", a: "10", opts: ["5", "10", "100", "1"] },
+            { id: "p9", name: "Crossword Riddle", icon: "📝", q: "What has keys but can't open a single lock?", a: "Keyboard", opts: ["Box", "Door", "Keyboard", "Map"] },
+            { id: "p10", name: "Match 3 Diamond", icon: "💎", q: "Swap 2 gems to make a row of 4. How many extra score points do you get?", a: "200", opts: ["50", "100", "200", "500"] },
+            { id: "p11", name: "Hidden Object Finder", icon: "🔍", q: "I have a neck but no head. What am I?", a: "Bottle", opts: ["Shirt", "Bottle", "Guitar", "Snake"] },
+            { id: "p12", name: "Pipe Connection", icon: "🚰", q: "Connect 4 pipes in a cross grid. How many paths will water follow?", a: "4", opts: ["1", "2", "3", "4"] },
+            { id: "p13", name: "Jigsaw Shape Test", icon: "🖼️", q: "A hexagon shape puzzle has how many side edges?", a: "6", opts: ["4", "5", "6", "8"] },
+            { id: "p14", name: "Maze Runner Logic", icon: "🏛️", q: "In a dead-end maze, turning left 3 times is equal to turning where once?", a: "Right", opts: ["Left", "Right", "Backwards", "Straight"] },
+            { id: "p15", name: "Chess King Maze", icon: "♞", q: "Which chess piece can jump over other pieces?", a: "Knight", opts: ["Pawn", "Rook", "Knight", "Queen"] },
+            { id: "p16", name: "Slide Master Grid", icon: "🖼️", q: "In an 8-puzzle slide game, how many blocks can move at once?", a: "1", opts: ["1", "2", "3", "4"] },
+            { id: "p17", name: "Tower of Hanoi IQ", icon: "🗼", q: "Minimum moves to shift 3 disks to another pole?", a: "7", opts: ["3", "5", "7", "9"] },
+            { id: "p18", name: "Hexa Block Match", icon: "⬡", q: "How many triangles make up a single hexagon shape?", a: "6", opts: ["4", "6", "8", "12"] },
+            { id: "p19", name: "Color Fill Master", icon: "🎨", q: "Mix Blue and Yellow color paint. What color do you get?", a: "Green", opts: ["Red", "Green", "Purple", "Orange"] },
+            { id: "p20", name: "Bubble Shooter Math", icon: "🔵", q: "Pop 3 bubbles of score 15 each. Total points gained?", a: "45", opts: ["30", "45", "60", "15"] },
+            { id: "p21", name: "Tangram Geometry", icon: "📐", q: "A standard Tangram puzzle consists of how many total pieces?", a: "7", opts: ["5", "7", "9", "12"] },
+            { id: "p22", name: "Bridge Builder Test", icon: "🌉", q: "Two pillars are 10m apart. How long must the beam be to bridge them?", a: "10m", opts: ["5m", "8m", "10m", "12m"] },
+            { id: "p23", name: "Traffic Jam Escape", icon: "🚗", q: "Red car is blocked by 3 trucks. How many total moves to clear the exit?", a: "4", opts: ["2", "3", "4", "5"] },
+            { id: "p24", name: "Water Sort Balance", icon: "🧪", q: "Pour 20ml water into a 50ml tube. How much space remains empty?", a: "30ml", opts: ["20ml", "30ml", "50ml", "10ml"] },
+            { id: "p25", name: "Link Dot Connector", icon: "⚪", q: "Connect 5 dots in a full circular loop. How many lines are made?", a: "5", opts: ["4", "5", "6", "10"] },
+            { id: "p26", name: "Crypto Code Breaker", icon: "🔐", q: "If A=1, B=2, C=3, what does code '3-8-1-14-4-1-14' spell?", a: "CHANDAN", opts: ["CHANDAN", "SHIVAM", "PUZZLE", "GAMING"] },
+            { id: "p27", name: "Hangman Word Quiz", icon: "🪓", q: "Guess missing letters: P _ Z Z _ E", a: "U, L", opts: ["A, O", "E, I", "U, L", "X, Y"] },
+            { id: "p28", name: "Pyramid IQ Riddle", icon: "🔺", q: "Base has 4 blocks, next row has 3, then 2. How many at the very top?", a: "1", opts: ["1", "2", "0", "3"] },
+            { id: "p29", name: "Clock Time Puzzle", icon: "⏰", q: "Clock shows 3:15. What is the angle between hour and minute hands?", a: "7.5°", opts: ["0°", "7.5°", "15°", "90°"] },
+            { id: "p30", name: "Chandan's Mega Win", icon: "👑", q: "Who is the creator and master boss of this amazing 30-game website?", a: "CHANDAN", opts: ["ROHIT", "AMIT", "CHANDAN", "SHIVAM"] }
+        ];
+
+        const containerArea = document.getElementById('gameContentArea');
+        const titleDisplay = document.getElementById('gameTitleDisplay');
+        const resetBtnContainer = document.getElementById('resetBtnContainer');
+
+        // Main Router Function to Load Games
+        function loadGame(game) {
+            currentGameObj = game;
+            titleDisplay.innerText = game.name;
+            containerArea.innerHTML = "";
+            resetBtnContainer.innerHTML = ""; // Clear old button
+
+            // Add Fresh Restart Button
+            const resetBtn = document.createElement('button');
+            resetBtn.className = "btn";
+            resetBtn.innerHTML = "🔄 Restart Game";
+            resetBtn.onclick = () => loadGame(currentGameObj); // Reload current game logic
+            resetBtnContainer.appendChild(resetBtn);
+
+            if (game.id === "sudoku") {
+                const sGrid = document.createElement('div');
+                sGrid.className = "sudoku-grid";
+                // Randomly scrambled Sudoku boards generator simulation
+                const boards = [
+                    [5,3,0,0,7,0,0,0,0,6,0,0,1,9,5,0,0,0,0,9,8,0,0,0,0,6,0,8,0,0,0,6,0,0,0,3,4,0,0,8,0,3,0,0,1,7,0,0,0,2,0,0,0,6,0,6,0,0,0,0,2,8,0,0,0,0,4,1,9,0,0,5,0,0,0,0,8,0,0,7,9],
+                    [0,0,0,2,6,0,7,0,1,6,8,0,0,7,0,0,9,0,1,9,0,0,0,4,5,0,0,8,2,0,1,0,0,0,4,0,0,0,4,6,0,2,9,0,0,0,5,0,0,0,3,0,2,8,0,0,9,3,0,0,0,7,4,0,4,0,0,5,0,0,3,6,7,0,3,0,1,8,0,0,0]
+                ];
+                const selectedBoard = boards[Math.floor(Math.random() * boards.length)];
+                selectedBoard.forEach(num => {
+                    const input = document.createElement('input');
+                    input.type = 'text'; input.maxLength = 1;
+                    if(num !== 0) { input.value = num; input.disabled = true; input.style.background = '#e6f2ff'; }
+                    sGrid.appendChild(input);
+                });
+                containerArea.appendChild(sGrid);
+            } 
+            else if (game.id === "tictactoe") {
+                const tGrid = document.createElement('div');
+                tGrid.className = "ttt-grid";
+                let state = ["", "", "", "", "", "", "", "", ""];
+                function drawTTT() {
+                    tGrid.innerHTML = "";
+                    state.forEach((cell, i) => {
+                        const c = document.createElement('div');
+                        c.className = "ttt-cell"; c.innerText = cell;
+                        c.onclick = () => {
+                            if(state[i] === "") {
+                                state[i] = "X"; drawTTT();
+                                setTimeout(() => {
+                                    let blanks = state.map((v, idx) => v === "" ? idx : null).filter(v => v !== null);
+                                    if(blanks.length > 0) { state[blanks[Math.floor(Math.random()*blanks.length)]] = "O"; drawTTT(); }
+                                }, 200);
+                            }
+                        };
+                        tGrid.appendChild(c);
+                    });
+                }
+                drawTTT(); containerArea.appendChild(tGrid);
+            } 
+            else if (game.id === "memory") {
+                const mGrid = document.createElement('div');
+                mGrid.className = "memory-grid";
+                const icons = ['🍎','🍎','🍌','🍌','🍇','🍇','🍓','🍓','🍒','🍒','🍍','🍍','💎','💎','👑','👑'].sort(() => 0.5 - Math.random());
+                let flipped = [];
+                icons.forEach(icon => {
+                    const card = document.createElement('div');
+                    card.className = "memory-card"; card.innerText = icon;
+                    card.onclick = () => {
+                        if(flipped.length < 2 && !card.classList.contains('flipped')) {
+                            card.classList.add('flipped'); flipped.push(card);
+                            if(flipped.length === 2) {
+                                if(flipped[0].innerText !== flipped[1].innerText) {
+                                    setTimeout(() => { flipped.forEach(c => c.classList.remove('flipped')); flipped = []; }, 600);
+                                } else { flipped = []; }
+                            }
+                        }
+                    };
+                    mGrid.appendChild(card);
+                });
+                containerArea.appendChild(mGrid);
+            } 
+            else {
+                // PUZZLE ENGINE FOR ALL OTHER 27 GAMES
+                const pBox = document.createElement('div');
+                pBox.className = "puzzle-engine-box";
+                pBox.innerHTML = `
+                    <div class="puzzle-question">${game.q}</div>
+                    <div class="puzzle-options">
+                        ${game.opts.map(opt => `<button class="opt-btn" onclick="checkEngineAns('${opt}', '${game.a}')">${opt}</button>`).join('')}
+                    </div>
+                `;
+                containerArea.appendChild(pBox);
+            }
+        }
+
+        function checkEngineAns(selected, correct) {
+            if(selected === correct) { alert("🎉 Correct Answer! Brilliant move Chandan!"); } 
+            else { alert("❌ Wrong Answer! Try again, master!"); }
+        }
+
+        // Build 30 Cards Grid Dynamically
+        const grid = document.getElementById('gamesGrid');
+        gamesList.forEach(game => {
+            const card = document.createElement('div');
+            card.className = "game-card";
+            card.innerHTML = `<span class="game-icon">${game.icon}</span><h3>${game.name}</h3>`;
+            card.onclick = () => {
+                loadGame(game);
+                document.querySelector('.game-screen-box').scrollIntoView({ behavior: 'smooth' });
+            };
+            grid.appendChild(card);
+        });
+
+        // Load Default Game
+        loadGame(gamesList[0]);
+    </script>
+</body>
+</html>
